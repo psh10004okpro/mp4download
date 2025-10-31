@@ -2,26 +2,42 @@
 
 웹사이트 URL을 입력하면 해당 페이지의 동영상을 검색하고 다운로드할 수 있는 프로그램입니다.
 
-## 🎯 두 가지 버전 제공
+## 🎯 세 가지 버전 제공
 
-### 1. Windows 데스크톱 프로그램 (추천) ⭐
+### 1. Chrome 확장 프로그램 (신규!) 🆕⭐
+- IDM처럼 웹사이트에서 동영상 자동 감지
+- 동영상 위에 다운로드 버튼 표시
+- 원클릭 다운로드, HLS/DASH 스트리밍 지원
+- **👉 [Chrome 확장 프로그램 설치 가이드](chrome-extension/설치가이드.md)**
+
+### 2. Windows 데스크톱 프로그램 ⭐
 - 사용하기 쉬운 GUI 인터페이스
 - 설치 간편, 실행 파일(.exe) 제공
 - 실시간 다운로드 진행률 표시
 - **👉 [Windows 사용 가이드 보기](README_WINDOWS.md)**
 
-### 2. 웹 애플리케이션
+### 3. 웹 애플리케이션
 - 브라우저에서 실행
 - 서버 형태로 배포 가능
 - 아래 설명 참조
 
 ## 주요 기능
 
+### Chrome 확장 프로그램
+- 🔍 웹페이지의 모든 동영상 자동 감지
+- 📥 동영상 위에 다운로드 버튼 표시
+- 🎯 HLS(.m3u8), DASH(.mpd) 스트리밍 지원
+- 🔒 Referer 제한 사이트 자동 우회
+- 🌐 모든 웹사이트에서 작동
+
+### Windows 데스크톱 프로그램
 - 🔍 URL에서 동영상 자동 감지
 - 📊 다양한 포맷 및 해상도 선택
 - ⬇️ 원클릭 다운로드
 - 🎨 반응형 UI 디자인
 - 🚀 빠른 다운로드 속도
+- 📋 클립보드 자동 감지
+- 📜 다운로드 히스토리
 
 ## 지원 사이트
 
@@ -85,7 +101,16 @@ python app.py
 
 ```
 mp4download/
-├── video_downloader_gui.py    # Windows GUI 프로그램 (메인)
+├── chrome-extension/          # Chrome 확장 프로그램 (신규!)
+│   ├── manifest.json         # 확장 프로그램 설정
+│   ├── content.js            # 동영상 감지 스크립트
+│   ├── background.js         # 다운로드 관리
+│   ├── popup.html/js         # 팝업 UI
+│   ├── styles.css            # 스타일
+│   ├── icons/                # 아이콘 파일
+│   ├── README.md             # 확장 프로그램 가이드
+│   └── 설치가이드.md         # 설치 가이드
+├── video_downloader_gui.py    # Windows GUI 프로그램
 ├── app.py                     # Flask 웹 서버
 ├── build_exe.py               # EXE 빌드 스크립트
 ├── run.bat                    # Windows 실행 스크립트
@@ -93,6 +118,9 @@ mp4download/
 ├── requirements.txt           # Python 의존성
 ├── README.md                  # 프로젝트 설명
 ├── README_WINDOWS.md          # Windows 상세 가이드
+├── HLS_스트림_가이드.md       # HLS 스트림 가이드
+├── Referer_우회_가이드.md     # Referer 우회 가이드
+├── BUILD_GUIDE.md             # 빌드 가이드
 ├── templates/
 │   └── index.html            # 웹 인터페이스
 └── downloads/                # 다운로드 폴더
