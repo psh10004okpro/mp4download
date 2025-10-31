@@ -1,4 +1,10 @@
-Flask==3.0.0
+# Windows GUI Application
+customtkinter==5.2.1
 yt-dlp==2024.8.6
+Pillow==10.1.0
+pyinstaller==6.2.0
+
+# Web Application (optional)
+Flask==3.0.0
 flask-cors==4.0.0
 gunicorn==21.2.0

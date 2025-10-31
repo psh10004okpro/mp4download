@@ -1,6 +1,19 @@
 # 동영상 다운로더
 
-웹사이트 URL을 입력하면 해당 페이지의 동영상을 검색하고 다운로드할 수 있는 웹 애플리케이션입니다.
+웹사이트 URL을 입력하면 해당 페이지의 동영상을 검색하고 다운로드할 수 있는 프로그램입니다.
+
+## 🎯 두 가지 버전 제공
+
+### 1. Windows 데스크톱 프로그램 (추천) ⭐
+- 사용하기 쉬운 GUI 인터페이스
+- 설치 간편, 실행 파일(.exe) 제공
+- 실시간 다운로드 진행률 표시
+- **👉 [Windows 사용 가이드 보기](README_WINDOWS.md)**
+
+### 2. 웹 애플리케이션
+- 브라우저에서 실행
+- 서버 형태로 배포 가능
+- 아래 설명 참조
 
 ## 주요 기능
 
@@ -21,24 +34,35 @@ yt-dlp를 사용하므로 다음 사이트들을 지원합니다:
 - Twitter
 - 그 외 1000+ 사이트
 
-## 설치 방법
+## 빠른 시작
 
-### 1. 필요한 패키지 설치
+### Windows GUI 프로그램 (추천)
 
 ```bash
+# 패키지 설치
 pip install -r requirements.txt
+
+# 프로그램 실행
+python video_downloader_gui.py
 ```
 
-### 2. 애플리케이션 실행
+또는 배치 파일 사용:
+```bash
+run.bat
+```
+
+상세한 사용법은 [Windows 가이드](README_WINDOWS.md)를 참조하세요.
+
+### 웹 애플리케이션
 
 ```bash
+# 패키지 설치
+pip install -r requirements.txt
+
+# 서버 실행
 python app.py
-```
 
-### 3. 브라우저에서 접속
-
-```
-http://localhost:5000
+# 브라우저에서 http://localhost:5000 접속
 ```
 
 ## 사용 방법
@@ -61,12 +85,17 @@ http://localhost:5000
 
 ```
 mp4download/
-├── app.py                 # Flask 애플리케이션
-├── requirements.txt       # Python 의존성
+├── video_downloader_gui.py    # Windows GUI 프로그램 (메인)
+├── app.py                     # Flask 웹 서버
+├── build_exe.py               # EXE 빌드 스크립트
+├── run.bat                    # Windows 실행 스크립트
+├── build.bat                  # Windows 빌드 스크립트
+├── requirements.txt           # Python 의존성
+├── README.md                  # 프로젝트 설명
+├── README_WINDOWS.md          # Windows 상세 가이드
 ├── templates/
-│   └── index.html        # 메인 웹 페이지
-├── static/               # 정적 파일 (필요시)
-└── downloads/            # 다운로드된 파일 저장 폴더
+│   └── index.html            # 웹 인터페이스
+└── downloads/                # 다운로드 폴더
 ```
 
 ## API 엔드포인트
