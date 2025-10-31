@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>동영상 다운로더 테스트 페이지</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .video-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        video {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        .info {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .info h2 {
+            margin-top: 0;
+        }
+        .url {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎥 Video Downloader Pro 테스트 페이지</h1>
+
+    <div class="video-container">
+        <h2>테스트 동영상 1 (Big Buck Bunny)</h2>
+        <video controls>
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" type="video/mp4">
+            브라우저가 video 태그를 지원하지 않습니다.
+        </video>
+        <div class="info">
+            <p><strong>설명:</strong> Big Buck Bunny - 오픈 소스 단편 애니메이션</p>
+            <p><strong>크기:</strong> 약 9MB</p>
+            <p class="url"><strong>URL:</strong> https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4</p>
+        </div>
+    </div>
+
+    <div class="video-container">
+        <h2>테스트 동영상 2 (Elephant Dream)</h2>
+        <video controls>
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4" type="video/mp4">
+            브라우저가 video 태그를 지원하지 않습니다.
+        </video>
+        <div class="info">
+            <p><strong>설명:</strong> Elephant Dream - 오픈 소스 단편 영화</p>
+            <p><strong>크기:</strong> 약 8MB</p>
+            <p class="url"><strong>URL:</strong> https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4</p>
+        </div>
+    </div>
+
+    <div class="video-container">
+        <h2>테스트 동영상 3 (Sintel)</h2>
+        <video controls>
+            <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4" type="video/mp4">
+            브라우저가 video 태그를 지원하지 않습니다.
+        </video>
+        <div class="info">
+            <p><strong>설명:</strong> Sintel - Blender Foundation 단편 영화</p>
+            <p><strong>크기:</strong> 약 10MB</p>
+            <p class="url"><strong>URL:</strong> https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4</p>
+        </div>
+    </div>
+
+    <div class="info">
+        <h2>📝 테스트 방법</h2>
+        <ol>
+            <li>Video Downloader Pro 확장 프로그램이 설치되어 있는지 확인</li>
+            <li>위 동영상에 마우스를 올리면 <strong>보라색 다운로드 버튼</strong>이 표시됩니다</li>
+            <li>버튼을 클릭하면 <strong>.mp4 파일</strong>이 다운로드되어야 합니다</li>
+            <li>확장 프로그램 아이콘에 <strong>배지(숫자)</strong>가 표시됩니다 (예: 3)</li>
+        </ol>
+
+        <h2>✅ 정상 작동 확인</h2>
+        <ul>
+            <li>✅ 다운로드된 파일 확장자가 <strong>.mp4</strong>여야 합니다</li>
+            <li>✅ 파일을 재생하면 동영상이 정상 재생되어야 합니다</li>
+            <li>✅ 파일 크기가 8-10MB 정도여야 합니다</li>
+        </ul>
+
+        <h2>❌ 문제가 있다면</h2>
+        <ul>
+            <li>❌ <strong>.shtml</strong> 파일이 다운로드됨 → URL 감지 오류</li>
+            <li>❌ 버튼이 안 보임 → 확장 프로그램 미설치 또는 비활성화</li>
+            <li>❌ 클릭해도 반응 없음 → Console 로그 확인 (F12)</li>
+        </ul>
+    </div>
+
+    <div class="info" style="margin-top: 30px; background: rgba(255, 200, 0, 0.3);">
+        <h2>⚠️ 주의사항</h2>
+        <p><strong>YouTube, Netflix 등에서는 작동하지 않을 수 있습니다!</strong></p>
+        <p>이러한 사이트들은:</p>
+        <ul>
+            <li>복잡한 스트리밍 기술 사용 (DASH, HLS)</li>
+            <li>DRM(저작권 보호) 적용</li>
+            <li>특별한 인증 토큰 필요</li>
+        </ul>
+        <p><strong>해결책:</strong> Windows GUI 프로그램(video_downloader_gui.py)을 사용하세요.</p>
+    </div>
+</body>
+</html>
