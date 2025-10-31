@@ -6,6 +6,76 @@ console.log('Video Downloader Pro: Content script loaded');
 // 감지된 동영상 목록
 const detectedVideos = new Set();
 
+// 유효한 동영상 URL 확인
+function isValidVideoUrl(url) {
+    if (!url || typeof url !== 'string') {
+        return false;
+    }
+
+    // http:// 또는 https://로 시작해야 함
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        return false;
+    }
+
+    // 잘못된 확장자 필터링 (웹페이지 파일)
+    const invalidExtensions = [
+        '.html', '.htm', '.shtml', '.php', '.asp', '.aspx',
+        '.jsp', '.cgi', '.pl', '.py', '.rb'
+    ];
+
+    const urlLower = url.toLowerCase();
+    for (const ext of invalidExtensions) {
+        if (urlLower.includes(ext)) {
+            console.log('Rejected non-video URL:', url);
+            return false;
+        }
+    }
+
+    // 유효한 동영상 확장자
+    const validExtensions = [
+        '.mp4', '.webm', '.ogg', '.m3u8', '.mpd',
+        '.m4v', '.mov', '.avi', '.mkv', '.flv',
+        '.ts', '.m4s' // 스트리밍 세그먼트
+    ];
+
+    // 확장자가 명확한 경우
+    for (const ext of validExtensions) {
+        if (urlLower.includes(ext)) {
+            return true;
+        }
+    }
+
+    // 쿼리 파라미터 제거 후 확인
+    const urlWithoutQuery = url.split('?')[0].toLowerCase();
+    for (const ext of validExtensions) {
+        if (urlWithoutQuery.endsWith(ext)) {
+            return true;
+        }
+    }
+
+    // Blob URL은 별도 처리
+    if (url.startsWith('blob:')) {
+        console.warn('Blob URL detected - cannot download directly:', url);
+        return false;
+    }
+
+    // 확장자가 없지만 의심스러운 패턴
+    // video, stream, media 등의 키워드 포함
+    const videoKeywords = ['video', 'stream', 'media', 'play', 'watch'];
+    const hasVideoKeyword = videoKeywords.some(keyword => urlLower.includes(keyword));
+
+    if (hasVideoKeyword) {
+        // URL에 확장자가 없지만 비디오 관련 키워드가 있음
+        // 사용자에게 경고하고 시도는 허용
+        console.warn('Detected possible video URL without extension:', url);
+        return true;
+    }
+
+    // 기본적으로 거부
+    console.log('Rejected unknown URL format:', url);
+    return false;
+}
+
 // 다운로드 버튼 생성
 function createDownloadButton(videoElement, videoUrl) {
     // 이미 버튼이 있으면 생성하지 않음
@@ -108,8 +178,8 @@ function detectVideoElements() {
             video.dataset.vdpProcessed = 'true';
 
             // src 속성에서 URL 가져오기
-            if (video.src && video.src.startsWith('http')) {
-                console.log('Found video (src):', video.src);
+            if (video.src && isValidVideoUrl(video.src)) {
+                console.log('Found valid video (src):', video.src);
                 detectedVideos.add(video.src);
                 createDownloadButton(video, video.src);
             }
@@ -117,16 +187,16 @@ function detectVideoElements() {
             // source 태그에서 URL 가져오기
             const sources = video.querySelectorAll('source');
             sources.forEach(source => {
-                if (source.src && source.src.startsWith('http')) {
-                    console.log('Found video (source):', source.src);
+                if (source.src && isValidVideoUrl(source.src)) {
+                    console.log('Found valid video (source):', source.src);
                     detectedVideos.add(source.src);
                     createDownloadButton(video, source.src);
                 }
             });
 
             // currentSrc 체크 (재생 중인 소스)
-            if (video.currentSrc && video.currentSrc.startsWith('http')) {
-                console.log('Found video (currentSrc):', video.currentSrc);
+            if (video.currentSrc && isValidVideoUrl(video.currentSrc)) {
+                console.log('Found valid video (currentSrc):', video.currentSrc);
                 detectedVideos.add(video.currentSrc);
                 createDownloadButton(video, video.currentSrc);
             }
@@ -139,8 +209,8 @@ function interceptNetworkRequests() {
     // XMLHttpRequest 가로채기
     const originalOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url) {
-        if (isVideoUrl(url)) {
-            console.log('Detected video URL (XHR):', url);
+        if (isValidVideoUrl(url)) {
+            console.log('Detected valid video URL (XHR):', url);
             detectedVideos.add(url);
             notifyVideoDetected(url);
         }
@@ -150,28 +220,13 @@ function interceptNetworkRequests() {
     // Fetch API 가로채기
     const originalFetch = window.fetch;
     window.fetch = function(url, options) {
-        if (typeof url === 'string' && isVideoUrl(url)) {
-            console.log('Detected video URL (Fetch):', url);
+        if (typeof url === 'string' && isValidVideoUrl(url)) {
+            console.log('Detected valid video URL (Fetch):', url);
             detectedVideos.add(url);
             notifyVideoDetected(url);
         }
         return originalFetch.apply(this, arguments);
     };
-}
-
-// URL이 동영상인지 확인
-function isVideoUrl(url) {
-    const videoExtensions = [
-        '.mp4', '.webm', '.ogg', '.m3u8', '.mpd',
-        '.avi', '.mov', '.wmv', '.flv', '.mkv', '.ts'
-    ];
-
-    const urlLower = url.toLowerCase();
-    return videoExtensions.some(ext =>
-        urlLower.includes(ext) ||
-        urlLower.includes('video') ||
-        urlLower.includes('stream')
-    );
 }
 
 // 동영상 감지 알림
@@ -209,8 +264,8 @@ function detectMediaSource() {
         // 현재 재생 중인 비디오 요소 찾기
         const videos = document.querySelectorAll('video');
         videos.forEach(video => {
-            if (video.currentSrc) {
-                console.log('MSE video source:', video.currentSrc);
+            if (video.currentSrc && isValidVideoUrl(video.currentSrc)) {
+                console.log('Valid MSE video source:', video.currentSrc);
                 detectedVideos.add(video.currentSrc);
             }
         });
