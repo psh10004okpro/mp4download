@@ -1,0 +1,88 @@
+================================================================
+      VIDEO DOWNLOADER - Quick Start Guide
+================================================================
+
+*** EASIEST METHOD ***
+
+1. Double-click: START.bat
+
+2. If Python is not installed:
+   - Download page will open automatically
+   - Install Python (CHECK "Add Python to PATH"!)
+   - Run START.bat again
+
+3. GUI window will open
+
+4. Copy video URL -> Paste -> Press Enter twice -> Done!
+
+
+*** STEP BY STEP ***
+
+Step 1: Install Python (if needed)
+----------------------------------
+- Go to: https://www.python.org/downloads/
+- Click "Download Python"
+- Run installer
+- IMPORTANT: Check "Add Python to PATH"
+- Click "Install Now"
+
+Step 2: Run Program
+----------------------------------
+- Double-click: START.bat
+- Wait for GUI window to open
+
+Step 3: Download Videos
+----------------------------------
+1. Copy video URL from browser (Ctrl+C)
+   Example: https://www.youtube.com/watch?v=...
+
+2. Program will auto-paste the URL!
+
+3. Press Enter (search video info)
+
+4. Press Enter again (start download)
+
+5. Done! File saved to Downloads folder
+
+
+*** SUPPORTED SITES ***
+
+YouTube, Vimeo, Dailymotion, Facebook, Instagram,
+TikTok, Twitter, Twitch, and 1000+ more sites!
+
+
+*** TROUBLESHOOTING ***
+
+Q: Window closes immediately?
+A: Python is not installed or not in PATH
+   - Reinstall Python
+   - Make sure to check "Add Python to PATH"
+
+Q: "python is not recognized"?
+A: Python PATH not configured
+   - Reinstall Python with "Add to PATH" checked
+   - Restart computer
+
+Q: Package installation fails?
+A: Internet connection required
+   - Check internet connection
+   - Run as administrator (right-click START.bat -> Run as administrator)
+
+
+*** FILES ***
+
+START.bat                 <- Use this! (Simple English version)
+video_downloader_gui.py   <- Main program
+QUICK_START.txt          <- This file
+
+
+*** SUPPORT ***
+
+For detailed guides (Korean):
+- README.md
+- README_WINDOWS.md
+
+
+================================================================
+Enjoy downloading videos!
+================================================================
