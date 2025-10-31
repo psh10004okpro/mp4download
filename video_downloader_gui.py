@@ -149,9 +149,10 @@ class VideoDownloaderApp(ctk.CTk):
         # 버튼 영역
         button_container = ctk.CTkFrame(input_frame, fg_color="transparent")
         button_container.grid(row=2, column=0, padx=20, pady=(0, 15), sticky="ew")
-        button_container.grid_columnconfigure(0, weight=2)
+        button_container.grid_columnconfigure(0, weight=3)
         button_container.grid_columnconfigure(1, weight=1)
         button_container.grid_columnconfigure(2, weight=1)
+        button_container.grid_columnconfigure(3, weight=1)
 
         self.search_button = ctk.CTkButton(
             button_container,
@@ -165,7 +166,7 @@ class VideoDownloaderApp(ctk.CTk):
 
         self.path_button = ctk.CTkButton(
             button_container,
-            text=f"📁 저장 위치",
+            text=f"📁 저장",
             command=self.select_download_path,
             height=50,
             font=ctk.CTkFont(size=13),
@@ -177,7 +178,7 @@ class VideoDownloaderApp(ctk.CTk):
 
         self.history_button = ctk.CTkButton(
             button_container,
-            text="📜 히스토리",
+            text="📜 기록",
             command=self.show_history,
             height=50,
             font=ctk.CTkFont(size=13),
@@ -185,7 +186,19 @@ class VideoDownloaderApp(ctk.CTk):
             hover_color="#3b3b3b",
             corner_radius=10
         )
-        self.history_button.grid(row=0, column=2, padx=(5, 0), sticky="ew")
+        self.history_button.grid(row=0, column=2, padx=(5, 5), sticky="ew")
+
+        self.help_button = ctk.CTkButton(
+            button_container,
+            text="❓ 도움말",
+            command=self.show_help_window,
+            height=50,
+            font=ctk.CTkFont(size=13),
+            fg_color="#d35400",
+            hover_color="#e67e22",
+            corner_radius=10
+        )
+        self.help_button.grid(row=0, column=3, padx=(5, 0), sticky="ew")
 
         # 현재 저장 위치 표시
         self.path_label = ctk.CTkLabel(
@@ -218,7 +231,9 @@ class VideoDownloaderApp(ctk.CTk):
             "3️⃣  '동영상 검색하기' 버튼을 클릭하세요",
             "4️⃣  원하는 화질을 선택하고 다운로드하세요",
             "",
-            "✨ 지원 사이트: YouTube, Vimeo, Facebook, Instagram, Twitter 등"
+            "✨ 지원: YouTube, Vimeo, Facebook, Instagram, Twitter 등",
+            "🎬 HLS 스트림(.m3u8), DASH(.mpd)도 다운로드 가능!",
+            "❓ Blob URL? '도움말' 버튼을 눌러 실제 URL 찾는 방법 확인"
         ]
 
         for instruction in instructions:
@@ -245,16 +260,29 @@ class VideoDownloaderApp(ctk.CTk):
         self.progress_bar.set(0)
 
     def monitor_clipboard(self):
-        """클립보드 모니터링 (URL 자동 감지)"""
+        """클립보드 모니터링 (URL 자동 감지 - HLS 스트림 포함)"""
         if self.auto_paste:
             try:
                 clipboard = self.clipboard_get()
+
+                # Blob URL 체크
+                if clipboard.startswith('blob:') and clipboard != self.last_clipboard:
+                    self.last_clipboard = clipboard
+                    self.show_notification("⚠️ Blob URL은 직접 다운로드 불가! 아래 '도움말' 버튼을 눌러 실제 URL 찾는 방법을 확인하세요.")
+                    return
+
+                # 일반 URL 또는 스트림 URL 체크
                 if clipboard != self.last_clipboard and self.is_url(clipboard):
                     self.last_clipboard = clipboard
                     if not self.url_entry.get():  # 입력란이 비어있을 때만
                         self.url_entry.delete(0, 'end')
                         self.url_entry.insert(0, clipboard)
-                        self.show_notification("📋 URL이 자동으로 입력되었습니다!")
+
+                        # 스트림 URL인지 확인
+                        if self.is_stream_url(clipboard):
+                            self.show_notification("🎬 HLS/DASH 스트림 URL이 감지되었습니다! 바로 다운로드 가능합니다.")
+                        else:
+                            self.show_notification("📋 URL이 자동으로 입력되었습니다!")
             except:
                 pass
 
@@ -262,11 +290,35 @@ class VideoDownloaderApp(ctk.CTk):
         self.after(500, self.monitor_clipboard)
 
     def is_url(self, text):
-        """URL 여부 확인"""
+        """URL 여부 확인 (일반 URL 및 .m3u8, .mpd 등 스트림 URL 포함)"""
+        if not text or len(text.strip()) == 0:
+            return False
+
+        text = text.strip()
+
+        # 일반 HTTP(S) URL
         url_pattern = re.compile(
             r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
         )
-        return bool(url_pattern.match(text))
+
+        if url_pattern.match(text):
+            return True
+
+        # Blob URL 체크 (안내 메시지용)
+        if text.startswith('blob:'):
+            return False  # Blob URL은 직접 사용 불가
+
+        return False
+
+    def is_stream_url(self, text):
+        """스트리밍 URL 여부 확인 (.m3u8, .mpd 등)"""
+        if not text:
+            return False
+
+        text = text.lower()
+        stream_extensions = ['.m3u8', '.mpd', '.m3u', '.ts', '.mp4?']
+
+        return any(ext in text for ext in stream_extensions)
 
     def show_notification(self, message):
         """알림 메시지 표시"""
@@ -287,6 +339,101 @@ class VideoDownloaderApp(ctk.CTk):
             self.path_label.configure(text=f"💾 현재 저장 위치: {self.download_path}")
             self.save_config()
             self.show_notification(f"✅ 저장 위치가 변경되었습니다!")
+
+    def show_help_window(self):
+        """도움말 창 표시 (HLS 스트림 찾는 방법 포함)"""
+        help_window = ctk.CTkToplevel(self)
+        help_window.title("❓ 도움말 - 숨겨진 동영상 URL 찾기")
+        help_window.geometry("900x700")
+
+        # 제목
+        title = ctk.CTkLabel(
+            help_window,
+            text="🎬 숨겨진 동영상 URL 찾는 방법",
+            font=ctk.CTkFont(size=24, weight="bold")
+        )
+        title.pack(pady=20)
+
+        subtitle = ctk.CTkLabel(
+            help_window,
+            text="Blob URL이나 숨겨진 스트림도 다운로드할 수 있습니다!",
+            font=ctk.CTkFont(size=14),
+            text_color="gray"
+        )
+        subtitle.pack(pady=(0, 20))
+
+        # 스크롤 프레임
+        scroll_frame = ctk.CTkScrollableFrame(help_window)
+        scroll_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+
+        # 안내 내용
+        help_sections = [
+            {
+                "title": "📝 Blob URL이란?",
+                "content": "• 브라우저 내부에서만 사용되는 임시 URL (예: blob:https://...)\n• 실제 동영상 파일 주소가 아니므로 직접 다운로드 불가\n• 실제 스트림 URL(.m3u8, .mpd 등)을 찾아야 합니다",
+                "color": "#1f538d"
+            },
+            {
+                "title": "🔍 실제 URL 찾는 방법 (Chrome/Edge)",
+                "content": "1️⃣  동영상이 있는 페이지를 엽니다\n\n2️⃣  F12 키를 눌러 개발자 도구를 엽니다\n\n3️⃣  'Network' (네트워크) 탭을 클릭합니다\n\n4️⃣  필터에서 'All' 또는 'Media'를 선택합니다\n\n5️⃣  동영상을 재생합니다 (또는 새로고침 F5)\n\n6️⃣  목록에서 다음 중 하나를 찾습니다:\n     • .m3u8 (HLS 스트림)\n     • .mpd (DASH 스트림)\n     • .mp4 (직접 파일)\n     • master.m3u8\n     • playlist.m3u8\n\n7️⃣  해당 항목을 우클릭 → 'Copy' → 'Copy URL' 선택\n\n8️⃣  이 프로그램에 붙여넣고 다운로드!",
+                "color": "#1a4d2e"
+            },
+            {
+                "title": "🦊 Firefox에서 찾는 방법",
+                "content": "1️⃣  동영상 페이지를 엽니다\n\n2️⃣  F12 키를 눌러 개발자 도구를 엽니다\n\n3️⃣  '네트워크' 탭을 클릭합니다\n\n4️⃣  필터에서 'Media' 또는 'All'을 선택합니다\n\n5️⃣  동영상을 재생합니다\n\n6️⃣  .m3u8, .mpd, .mp4 파일을 찾습니다\n\n7️⃣  우클릭 → 'Copy Value' → 'URL 복사'\n\n8️⃣  이 프로그램에 붙여넣기!",
+                "color": "#4a5568"
+            },
+            {
+                "title": "💡 꿀팁",
+                "content": "• 검색 필터 사용: 네트워크 탭에서 'm3u8' 또는 'mpd' 검색\n• 크기가 큰 파일 찾기: 동영상 파일은 보통 크기가 큽니다\n• Type 확인: 'video/mp4', 'application/vnd.apple.mpegurl' 등\n• 여러 URL이 있으면: 'master.m3u8' 또는 'playlist.m3u8'부터 시도\n• HLS 스트림(.m3u8)은 자동으로 인식됩니다!",
+                "color": "#d35400"
+            },
+            {
+                "title": "✅ 지원하는 스트림 형식",
+                "content": "• HLS (.m3u8, .m3u) - 가장 흔한 형식\n• DASH (.mpd) - YouTube 등에서 사용\n• 직접 MP4 (.mp4)\n• TS 세그먼트 (.ts)\n• 그 외 대부분의 스트리밍 프로토콜",
+                "color": "#2c5282"
+            },
+            {
+                "title": "⚠️ 주의사항",
+                "content": "• DRM이 걸린 콘텐츠는 다운로드가 안 될 수 있습니다\n• 일부 사이트는 인증이 필요할 수 있습니다\n• 저작권이 있는 콘텐츠는 개인적 용도로만 사용하세요\n• 과도한 다운로드는 IP 차단의 원인이 될 수 있습니다",
+                "color": "#742a2a"
+            }
+        ]
+
+        for section in help_sections:
+            # 섹션 프레임
+            section_frame = ctk.CTkFrame(scroll_frame, fg_color=section["color"])
+            section_frame.pack(fill="x", pady=10, padx=10)
+
+            # 제목
+            section_title = ctk.CTkLabel(
+                section_frame,
+                text=section["title"],
+                font=ctk.CTkFont(size=16, weight="bold"),
+                anchor="w"
+            )
+            section_title.pack(fill="x", padx=15, pady=(15, 10))
+
+            # 내용
+            section_content = ctk.CTkLabel(
+                section_frame,
+                text=section["content"],
+                font=ctk.CTkFont(size=13),
+                anchor="w",
+                justify="left"
+            )
+            section_content.pack(fill="x", padx=15, pady=(0, 15))
+
+        # 닫기 버튼
+        close_btn = ctk.CTkButton(
+            help_window,
+            text="닫기",
+            command=help_window.destroy,
+            width=150,
+            height=40,
+            font=ctk.CTkFont(size=14, weight="bold")
+        )
+        close_btn.pack(pady=(0, 20))
 
     def show_history(self):
         """다운로드 히스토리 표시"""
