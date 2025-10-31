@@ -36,21 +36,13 @@ async function handleDownload(message, sender) {
         console.log('Starting download:', { url, filename, referer });
 
         // Chrome Downloads API 사용
+        // 참고: headers 옵션은 지원되지 않음
+        // Referer는 브라우저가 자동으로 현재 페이지의 쿠키/세션을 사용
         const downloadId = await chrome.downloads.download({
             url: url,
             filename: filename,
             saveAs: false, // 자동으로 다운로드 폴더에 저장
-            conflictAction: 'uniquify', // 파일명 중복 시 번호 추가
-            headers: [
-                {
-                    name: 'Referer',
-                    value: referer || url
-                },
-                {
-                    name: 'User-Agent',
-                    value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                }
-            ]
+            conflictAction: 'uniquify' // 파일명 중복 시 번호 추가
         });
 
         console.log('Download started with ID:', downloadId);
@@ -61,7 +53,18 @@ async function handleDownload(message, sender) {
         return { success: true, downloadId: downloadId };
     } catch (error) {
         console.error('Download error:', error);
-        return { success: false, error: error.message };
+
+        // 사용자 친화적인 에러 메시지
+        let errorMessage = error.message || '알 수 없는 오류';
+        if (errorMessage.includes('permissions')) {
+            errorMessage = '다운로드 권한이 없습니다';
+        } else if (errorMessage.includes('network')) {
+            errorMessage = '네트워크 오류입니다';
+        } else if (errorMessage.includes('URL')) {
+            errorMessage = '유효하지 않은 URL입니다';
+        }
+
+        return { success: false, error: errorMessage };
     }
 }
 

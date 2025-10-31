@@ -7,7 +7,9 @@
     "downloads",
     "storage",
     "tabs",
-    "webRequest"
+    "webRequest",
+    "notifications",
+    "contextMenus"
   ],
   "host_permissions": [
     "<all_urls>"
