@@ -8,6 +8,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox
 from datetime import datetime
 import tkinter as tk
+from urllib.parse import urlparse
 
 # CustomTkinter 설정
 ctk.set_appearance_mode("dark")
@@ -233,6 +234,7 @@ class VideoDownloaderApp(ctk.CTk):
             "",
             "✨ 지원: YouTube, Vimeo, Facebook, Instagram, Twitter 등",
             "🎬 HLS 스트림(.m3u8), DASH(.mpd)도 다운로드 가능!",
+            "🔒 Referer 제한 사이트도 자동 우회 (사이트 내부 접근 위장)",
             "❓ Blob URL? '도움말' 버튼을 눌러 실제 URL 찾는 방법 확인"
         ]
 
@@ -517,10 +519,29 @@ class VideoDownloaderApp(ctk.CTk):
     def _search_video_thread(self, url):
         """동영상 정보 검색 (백그라운드)"""
         try:
+            # URL에서 Referer 자동 추출
+            referer = self.extract_referer(url)
+
+            # HTTP 헤더 설정
+            http_headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+            }
+
+            if referer:
+                http_headers['Referer'] = referer
+                http_headers['Origin'] = referer.rstrip('/')
+
             ydl_opts = {
                 'quiet': True,
                 'no_warnings': True,
                 'extract_flat': False,
+                'http_headers': http_headers,
+                'referer': referer if referer else None,
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -722,12 +743,38 @@ class VideoDownloaderApp(ctk.CTk):
                 elif d['status'] == 'finished':
                     self.after(0, self.update_progress, 1.0, "✨ 다운로드 완료! 파일 처리 중...")
 
+            # URL에서 Referer 자동 추출
+            referer = self.extract_referer(url)
+
+            # HTTP 헤더 설정 (사이트 내부에서 접근한 것처럼 위장)
+            http_headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'DNT': '1',
+                'Connection': 'keep-alive',
+                'Upgrade-Insecure-Requests': '1',
+                'Sec-Fetch-Dest': 'document',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-User': '?1',
+                'Cache-Control': 'max-age=0',
+            }
+
+            # Referer가 있으면 추가
+            if referer:
+                http_headers['Referer'] = referer
+                http_headers['Origin'] = referer.rstrip('/')
+
             ydl_opts = {
                 'format': format_id if format_id != 'best' else 'best',
                 'outtmpl': os.path.join(self.download_path, '%(title)s.%(ext)s'),
                 'progress_hooks': [progress_hook],
                 'quiet': False,
                 'no_warnings': False,
+                'http_headers': http_headers,
+                'referer': referer if referer else None,
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -785,6 +832,21 @@ class VideoDownloaderApp(ctk.CTk):
         """프로그램 종료"""
         self.save_config()
         self.destroy()
+
+    def extract_referer(self, url):
+        """URL에서 Referer 추출 (사이트 내부 접근처럼 위장)"""
+        try:
+            parsed = urlparse(url)
+
+            # 기본 도메인 추출
+            if parsed.scheme and parsed.netloc:
+                # 프로토콜 + 도메인
+                referer = f"{parsed.scheme}://{parsed.netloc}/"
+                return referer
+
+            return None
+        except:
+            return None
 
     @staticmethod
     def format_duration(seconds):
